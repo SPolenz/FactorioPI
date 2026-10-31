@@ -19,14 +19,16 @@ tools/rcon.py --op say '{"text":"Hallo"}'
 tools/rcon.py --op inbox          # Chatnachrichten, die mit "@pi" beginnen
 ```
 
-## Server als Dienst
+## Server als Dienst (optional, für einen dedizierten Server-Rechner)
+
+Auf dem Spielrechner reicht `server/server.sh start <name>`. Für Dauerbetrieb:
 
 ```bash
-systemctl --user status factorio-pi     # läuft ab Login automatisch
-systemctl --user restart factorio-pi    # nach Mod-Änderungen nötig
+systemctl --user link "$PWD/server/systemd/factorio-pi.service"
+systemctl --user enable --now factorio-pi   # startet ab Login
 journalctl --user -u factorio-pi -f
 ```
-Spielstand: `Environment=FACTORIO_SAVE=spike` in `server/systemd/factorio-pi.service`.
+Spielstand: `Environment=FACTORIO_SAVE=spike` in der Unit-Datei.
 
 ## Pi-Erweiterung
 
