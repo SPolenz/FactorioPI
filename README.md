@@ -18,3 +18,20 @@ tools/rcon.py --op summary
 tools/rcon.py --op say '{"text":"Hallo"}'
 tools/rcon.py --op inbox          # Chatnachrichten, die mit "@pi" beginnen
 ```
+
+## Server als Dienst
+
+```bash
+systemctl --user status factorio-pi     # läuft ab Login automatisch
+systemctl --user restart factorio-pi    # nach Mod-Änderungen nötig
+journalctl --user -u factorio-pi -f
+```
+Spielstand: `Environment=FACTORIO_SAVE=spike` in `server/systemd/factorio-pi.service`.
+
+## Pi-Erweiterung
+
+`pi-extension/` ist in `~/.pi/agent/settings.json` als lokales Paket eingetragen.
+
+- Werkzeuge: `factorio_call` (beliebige Mod-Op), `factorio_say` (Chat als [Pi]).
+- Chatbrücke: fragt alle 2 s den Posteingang ab; `@pi …`-Nachrichten landen als Nachricht in der laufenden Pi-Sitzung, der Fragende sieht „[Pi] denkt nach …“.
+- `/factorio on|off|status`; `FACTORIO_PI_BRIDGE=off` startet ohne Brücke.

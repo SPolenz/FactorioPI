@@ -49,13 +49,30 @@ function ops.say(args)
   return { ok = true }
 end
 
--- Fetch and clear chat messages addressed to Pi.
-function ops.inbox(args)
+-- Chat messages addressed to Pi that have not been acknowledged yet.
+function ops.inbox(_)
   ensure_storage()
-  local msgs = storage.inbox
-  if args.peek then return { messages = msgs } end
-  storage.inbox = {}
-  return { messages = msgs }
+  return { messages = storage.inbox }
+end
+
+-- Acknowledge messages up to seq (inclusive); optionally tell the senders that Pi is on it.
+function ops.ack(args)
+  ensure_storage()
+  local upto = tonumber(args.upto) or 0
+  local keep, notified = {}, {}
+  for _, m in ipairs(storage.inbox) do
+    if m.seq > upto then
+      keep[#keep + 1] = m
+    elseif args.notify and m.player and not notified[m.player] then
+      notified[m.player] = true
+      local p = game.get_player(m.player)
+      if p and p.connected then
+        p.print("[color=0.6,0.6,0.6][Pi] denkt nach ...[/color]", { game_state = false })
+      end
+    end
+  end
+  storage.inbox = keep
+  return { remaining = #keep }
 end
 
 local function handle(cmd)

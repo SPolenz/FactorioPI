@@ -1,0 +1,16 @@
+[Unit]
+Description=Factorio-Server für factorio-pi (RCON nur localhost)
+After=network-online.target
+
+[Service]
+Type=simple
+Environment=FACTORIO_SAVE=spike
+ExecStart=%h/FactorioPI/server/server.sh start ${FACTORIO_SAVE}
+# SIGINT lässt Factorio sauber beenden und speichern
+KillSignal=SIGINT
+TimeoutStopSec=60
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=default.target
