@@ -1,0 +1,9 @@
+{
+  "name": "pi-companion",
+  "version": "0.1.0",
+  "title": "Pi Companion",
+  "author": "stefan",
+  "factorio_version": "2.1",
+  "description": "Bridge for an AI co-player: read compact game state, place ghosts, chat. Controlled via the /pi command (RCON). Uses no /c, keeps achievements.",
+  "dependencies": ["base >= 2.0"]
+}
