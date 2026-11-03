@@ -19,6 +19,16 @@ tools/rcon.py --op say '{"text":"Hallo"}'
 tools/rcon.py --op inbox          # Chatnachrichten, die mit "@pi" beginnen
 ```
 
+## Sichten (Ops des Begleit-Mods)
+
+- `rails {surface?, limit?}`: Schienennetz verdichtet. Probleme (u. a. `DEADLOCK: trains a -> b -> … -> a` aus dem Wartegraphen), Linien (Fahrpläne je Zuggruppe, einmal statt pro Zug), Bahnhöfe, Züge mit Zustand, Ziel, Ladung und `waits_for` (auf welchen Zug ein wartender Zug wartet).
+- `map {x, y, r}` oder `{x1, y1, x2, y2, scale?}`: ASCII-Karte. `- | / \` Schienen, `+` Kreuzung, `H` Haltestelle, Signal `o`/`y`/`x` (offen/reserviert/zu), Kettensignal `O`/`Y`/`X`, Buchstaben = Züge.
+- `entities {x1, y1, x2, y2, type?|name?}`: Entitäten eines Bereichs mit Position, Richtung und Signalzustand. Ein Signal zeigt zum ankommenden Zug.
+
+## Echte Spielstände
+
+Ein Spielstand mit eigenem Modset bekommt einen eigenen Mod-Ordner `server/data/mods-<name>` (Symlinks auf die passenden Zips in `~/.factorio/mods`, `mod-list.json`, `mod-settings.dat`, plus `pi-companion`). `server.sh start <name>` nimmt ihn automatisch. Den Spielstand vorher nach `server/data/saves/<name>.zip` kopieren; das Original in `~/.factorio/saves` bleibt unberührt.
+
 ## Server als Dienst (optional, für einen dedizierten Server-Rechner)
 
 Auf dem Spielrechner reicht `server/server.sh start <name>`. Für Dauerbetrieb:

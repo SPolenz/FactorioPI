@@ -128,7 +128,10 @@ export default function (pi: ExtensionAPI) {
 			label: "Factorio",
 			description:
 				"Call an op of the pi-companion mod on the running Factorio server (via RCON) and return its JSON result. " +
-				"Ops: ping, summary (tick, players, surfaces, research, mods), inbox (unacknowledged @pi chat messages). " +
+				"Ops: ping, summary (tick, players, surfaces, research, mods), inbox (unacknowledged @pi chat messages), " +
+				"rails {surface?, limit?} (rail network: problems incl. DEADLOCK cycles, lines/schedules, stations, trains with waits_for), " +
+				"map {x,y,r | x1,y1,x2,y2, scale?, surface?} (ASCII map of rails, signals, stops, trains), " +
+				"entities {x1,y1,x2,y2, type?|name?, limit?} (entities in an area: name, x, y, direction, state). " +
 				"Use factorio_say for chat output.",
 			parameters: Type.Object({
 				op: Type.String({ description: "Mod op name, e.g. 'summary'" }),
