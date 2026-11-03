@@ -1,0 +1,8 @@
+---------------------------------------------------------------------------------------------------
+Version: 0.1.0
+Date: 2026-11-03
+  Features:
+    - /pi command for an external AI agent over RCON; refuses calls from players.
+    - Chat inbox for messages starting with @pi, replies as [Pi].
+    - Compact views: summary, rails (lines, trains, wait graph, deadlock detection), ASCII map, entities.
+    - blockcheck: finds signals where a waiting train blocks other traffic.
