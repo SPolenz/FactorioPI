@@ -24,6 +24,7 @@ tools/rcon.py --op inbox          # Chatnachrichten, die mit "@pi" beginnen
 - `rails {surface?, limit?}`: Schienennetz verdichtet. Probleme (u. a. `DEADLOCK: trains a -> b -> … -> a` aus dem Wartegraphen), Linien (Fahrpläne je Zuggruppe, einmal statt pro Zug), Bahnhöfe, Züge mit Zustand, Ziel, Ladung und `waits_for` (auf welchen Zug ein wartender Zug wartet).
 - `map {x, y, r}` oder `{x1, y1, x2, y2, scale?}`: ASCII-Karte. `- | / \` Schienen, `+` Kreuzung, `H` Haltestelle, Signal `o`/`y`/`x` (offen/reserviert/zu), Kettensignal `O`/`Y`/`X`, Buchstaben = Züge.
 - `entities {x1, y1, x2, y2, type?|name?}`: Entitäten eines Bereichs mit Position, Richtung und Signalzustand. Ein Signal zeigt zum ankommenden Zug.
+- `blockcheck {x1?, y1?, x2?, y2?, train_length?, cluster_radius?, limit?, detail?}`: Blocksystem-Prüfung. Haltepunkte sind Signale, deren Block über ein normales Signal erreichbar ist. Von dort eine Zuglänge rückwärts; berührt der Zug einen Block mit fremden Ausfahrten und mehr als einer Einfahrt, ist das ein Konflikt. `fits` = Platz bis zum Konfliktblock in Feldern, 0 = Haltepunkt liegt direkt in einer Kreuzung. Ergebnisse nach Kreuzungen gruppiert.
 
 ## Echte Spielstände
 

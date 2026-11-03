@@ -132,6 +132,7 @@ export default function (pi: ExtensionAPI) {
 				"rails {surface?, limit?} (rail network: problems incl. DEADLOCK cycles, lines/schedules, stations, trains with waits_for), " +
 				"map {x,y,r | x1,y1,x2,y2, scale?, surface?} (ASCII map of rails, signals, stops, trains), " +
 				"entities {x1,y1,x2,y2, type?|name?, limit?} (entities in an area: name, x, y, direction, state). " +
+				"blockcheck {x1?,y1?,x2?,y2?, train_length?, limit?, detail?} (signal blocks where a waiting train blocks foreign traffic; fits = tiles until conflict block, grouped by junction). " +
 				"Use factorio_say for chat output.",
 			parameters: Type.Object({
 				op: Type.String({ description: "Mod op name, e.g. 'summary'" }),

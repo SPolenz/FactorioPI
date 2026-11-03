@@ -516,6 +516,192 @@ function ops.entities(args)
   return { count = #out, truncated = truncated or nil, entities = out }
 end
 
+-- ---------------------------------------------------------------------------
+-- Block check: where can a waiting train block foreign traffic?
+--
+-- Wait points: signals whose block can be entered through a rail signal (see is_wait_point).
+-- From each wait point we walk back one train length. Every block the tail touches is occupied.
+-- A touched block is a conflict if it has exits other than the ones on our way to the wait point
+-- AND more than one entrance (crossing / merge+split). A split with a single entrance only causes
+-- a queue in the same lane and is not reported.
+-- ---------------------------------------------------------------------------
+
+local OPP = {
+  [defines.rail_direction.front] = defines.rail_direction.back,
+  [defines.rail_direction.back] = defines.rail_direction.front,
+}
+local CONN = {
+  defines.rail_connection_direction.left,
+  defines.rail_connection_direction.straight,
+  defines.rail_connection_direction.right,
+}
+
+local function longest_train()
+  local best = 0
+  for _, train in pairs(game.train_manager.get_trains { force = "player" }) do
+    local len = 0
+    for _, c in ipairs(train.carriages) do
+      local p = c.prototype
+      len = len + (p.joint_distance or 4) + (p.connection_distance or 3)
+    end
+    if len > best then best = len end
+  end
+  return best > 0 and best or 42
+end
+
+-- (rail, direction) pairs whose rail segment ends in signal `sig` for trains travelling `direction`.
+local function approaches(sig)
+  local out = {}
+  for _, r in pairs(sig.get_connected_rails()) do
+    for _, d in pairs(defines.rail_direction) do
+      local s = r.get_rail_segment_signal(d, false)
+      if s and s.unit_number == sig.unit_number then
+        local dup = false
+        for _, o in ipairs(out) do
+          if o[1].is_rail_in_same_rail_segment_as(r) then dup = true break end
+        end
+        if not dup then out[#out + 1] = { r, d } end
+      end
+    end
+  end
+  return out
+end
+
+-- A train can only stop in front of a signal if it can enter that block through a rail signal
+-- (or without any signal). Behind a chain signal the train has already reserved up to and
+-- including the block after the next rail signal, so it never stops there - whatever the type.
+local function is_wait_point(rail)
+  local ins = rail.get_inbound_signals()
+  if #ins == 0 then return true end
+  for _, s in pairs(ins) do
+    if s.type == "rail-signal" then return true end
+  end
+  return false
+end
+
+-- Returns nil if fine, else { fits = tiles until the conflicting block, block = length of the block
+-- in front of the signal, ins, outs, other = position of a foreign exit signal }.
+local function check_wait_point(sig, rail, dir, L)
+  local worst
+  local first_block
+  local queue = { { rail, dir, 0, { [sig.unit_number] = true } } }
+  local steps = 0
+  while #queue > 0 and steps < 64 do
+    steps = steps + 1
+    local r, d, dist, allowed = table.unpack(table.remove(queue))
+    local conflict = false
+    local foreign
+    for _, s in pairs(r.get_outbound_signals()) do
+      if not allowed[s.unit_number] then foreign = s break end
+    end
+    if foreign then
+      local ins = r.get_inbound_signals()
+      if #ins > 1 then
+        conflict = true
+        if not worst or dist < worst.fits then
+          worst = {
+            fits = math.floor(dist), ins = #ins, outs = #r.get_outbound_signals(),
+            other = xy(foreign.position),
+          }
+        end
+      end
+    end
+    if not conflict then
+      local len = r.get_rail_segment_length()
+      local entry = r.get_rail_segment_signal(OPP[d], true)
+      if entry and (not first_block or dist + len < first_block) then first_block = dist + len end
+      if dist + len < L then
+        local back_rail, back_dir = r.get_rail_segment_end(OPP[d])
+        local nallowed = allowed
+        if entry then
+          nallowed = {}
+          for k in pairs(allowed) do nallowed[k] = true end
+          nallowed[entry.unit_number] = true
+        end
+        for _, c in ipairs(CONN) do
+          local nr, ndir = back_rail.get_connected_rail { rail_direction = back_dir, rail_connection_direction = c }
+          if nr then queue[#queue + 1] = { nr, ndir, dist + len, nallowed } end
+        end
+      end
+    end
+  end
+  if worst then worst.block = first_block and math.floor(first_block) or nil end
+  return worst
+end
+
+function ops.blockcheck(args)
+  local surface = game.get_surface(args.surface or "nauvis")
+  if not surface then error("unknown surface") end
+  local L = tonumber(args.train_length) or longest_train()
+  local filter = { type = { "rail-signal", "rail-chain-signal" }, force = "player" }
+  if args.x1 then filter.area = { { args.x1, args.y1 }, { args.x2, args.y2 } } end
+  local signals = surface.find_entities_filtered(filter)
+
+  local conflicts, wait_points = {}, 0
+  for _, sig in pairs(signals) do
+    for _, a in ipairs(approaches(sig)) do
+      if is_wait_point(a[1]) then
+        wait_points = wait_points + 1
+        local c = check_wait_point(sig, a[1], a[2], L)
+        if c then
+          c.at = xy(sig.position)
+          c.kind = sig.type == "rail-chain-signal" and "chain" or "rail"
+          c.facing = DIRS[sig.direction]
+          conflicts[#conflicts + 1] = c
+        end
+      end
+    end
+  end
+
+  -- Cluster nearby conflicts (one junction usually yields several).
+  local R = tonumber(args.cluster_radius) or 48
+  local clusters = {}
+  for _, c in ipairs(conflicts) do
+    local home
+    for _, cl in ipairs(clusters) do
+      if math.abs(cl.at[1] - c.at[1]) <= R and math.abs(cl.at[2] - c.at[2]) <= R then home = cl break end
+    end
+    if not home then
+      home = { at = c.at, n = 0, worst_fits = math.huge, signals = {} }
+      clusters[#clusters + 1] = home
+    end
+    home.n = home.n + 1
+    home.worst_fits = math.min(home.worst_fits, c.fits)
+    home.signals[#home.signals + 1] = c
+  end
+  for _, cl in ipairs(clusters) do
+    local sx, sy = 0, 0
+    for _, c in ipairs(cl.signals) do sx, sy = sx + c.at[1], sy + c.at[2] end
+    cl.at = { math.floor(sx / cl.n), math.floor(sy / cl.n) }
+    table.sort(cl.signals, function(a, b) return a.fits < b.fits end)
+  end
+  table.sort(clusters, function(a, b) return a.n > b.n end)
+
+  local limit = tonumber(args.limit) or 30
+  local detail = args.detail
+  local out = {}
+  for i = 1, math.min(limit, #clusters) do
+    local cl = clusters[i]
+    if not detail then
+      local sig = {}
+      for j = 1, math.min(4, #cl.signals) do
+        local c = cl.signals[j]
+        sig[j] = string.format("%s %d,%d %s fits %d", c.kind, c.at[1], c.at[2], c.facing or "?", c.fits)
+      end
+      cl.signals = sig
+    end
+    out[i] = cl
+  end
+  return {
+    train_length = L,
+    signals = #signals,
+    wait_points = wait_points,
+    conflicts = #conflicts,
+    junctions = #clusters,
+    clusters = out,
+  }
+end
+
 local function handle(cmd)
   if cmd.player_index then
     local p = game.get_player(cmd.player_index)
