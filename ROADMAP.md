@@ -29,7 +29,7 @@ Pi plays Factorio with us as planner and advisor: it reads the factory, explains
 ## Now
 
 - [ ] Push to GitHub.
-- [ ] Multiplayer test on save `vanilla` (2026-11-07): second player without Space Age joins, mod downloads from the portal; test the to-do GUI with two players.
+- [x] Multiplayer test on save `vanilla` (2026-11-07): second player without Space Age joined, mod came from the portal. Still to check: to-do GUI with two players.
 - [ ] Then: host from the other PC with RCON over LAN.
 
 ## Next
@@ -56,5 +56,7 @@ Pi plays Factorio with us as planner and advisor: it reads the factory, explains
 - 2026-11-03: Default setup: the hosting PC is in the LAN of the hosting player; Pi connects via `FACTORIO_RCON_HOST`.
 - 2026-11-03: A signal is a wait point if its block can be entered through a rail signal; behind chain signals a train never stops.
 - 2026-11-07: Own to-do list in `pi-companion` instead of an existing mod: Todo List, Task List, Mission Tasks, JOLT and Set Objective have no remote interface, so Pi could only reach them with `/c`.
+- 2026-11-07: Save `vanilla` runs with quick-start mod `acorns-quick-start` 2.1.0 (modular armor, 2 personal roboports, 20 construction bots). It hands out items in `on_init`, so adding it to a running save works. Backup before: `vanilla-before-quickstart.zip`.
+- 2026-11-07: A symlink `~/.factorio/mods/pi-companion_0.1.0` pointing at the repo broke the client after the bump to 0.2.0 (folder name must match the version). Use the packaged zip on clients, not a symlink.
 - 2026-11-07: Portal uploads with an API key kept in `~/.config/factorio/api-key` (outside the repo).
 - Mod version must be bumped before every distribution, otherwise clients fail with a checksum mismatch.
