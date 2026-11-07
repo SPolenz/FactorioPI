@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Lokaler Factorio-Server für factorio-pi. Eigene Schreibdaten (server/data), berührt ~/.factorio nicht.
-# Nutzung: server/server.sh create <name> | start <name> | stop
+# Nutzung: server/server.sh create <name> [map-gen-settings.json] | start <name>
 set -euo pipefail
 HERE="$(cd "$(dirname "$0")" && pwd)"
 ROOT="$(dirname "$HERE")"
@@ -36,10 +36,13 @@ JSON
 
 COMMON=(--config "$DATA/config.ini" --mod-directory "$MODS")
 case "${1:-}" in
-  create) "$FACTORIO" "${COMMON[@]}" --create "$DATA/saves/${2:?name}.zip" ;;
+  create)
+    GEN=()
+    [[ -n "${3:-}" ]] && GEN=(--map-gen-settings "$3")
+    "$FACTORIO" "${COMMON[@]}" --create "$DATA/saves/${2:?name}.zip" "${GEN[@]}" ;;
   start)
     exec "$FACTORIO" "${COMMON[@]}" --start-server "$DATA/saves/${2:?name}.zip" \
       --port "$GAME_PORT" --rcon-bind "127.0.0.1:$RCON_PORT" --rcon-password "$RCON_PASSWORD" \
       --server-settings "$HERE/server-settings.json" ;;
-  *) echo "usage: $0 create <name> | start <name>"; exit 1 ;;
+  *) echo "usage: $0 create <name> [map-gen-settings.json] | start <name>"; exit 1 ;;
 esac

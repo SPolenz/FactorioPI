@@ -1,4 +1,10 @@
 ---------------------------------------------------------------------------------------------------
+Version: 0.2.0
+Date: 2026-11-07
+  Features:
+    - Shared to-do list for players and Pi: GUI button "Todos", /todo command, ops todos, todo_add, todo_update, todo_remove, todo_clear_done.
+    - Works without Space Age (base game only).
+---------------------------------------------------------------------------------------------------
 Version: 0.1.0
 Date: 2026-11-03
   Features:

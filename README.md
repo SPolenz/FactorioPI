@@ -26,7 +26,7 @@ Pi never uses `/c` console commands, so achievements stay enabled. Everything ru
      local-rcon-password=<secret>
      ```
      Open port 27015 in the firewall for the machine that runs Pi only. Use `127.0.0.1:27015` if Pi runs on the hosting machine.
-   - **Dedicated server:** `server/server.sh create <name>` / `server/server.sh start <name>`. RCON binds to `127.0.0.1:27015`, the password is generated into `server/.env`.
+   - **Dedicated server:** `server/server.sh create <name> [map-gen-settings.json]` / `server/server.sh start <name>`. `server/map-gen-relaxed.json` gives a relaxed map (peaceful biters, rich ore, no cliffs). Without Space Age: put a `mod-list.json` with only `base` and `pi-companion` enabled into `server/data/mods-<name>/` before `create`. RCON binds to `127.0.0.1:27015`, the password is generated into `server/.env`.
 3. Add `pi-extension/` as a local package in `~/.pi/agent/settings.json` and point it at the host:
    ```bash
    export FACTORIO_RCON_HOST=192.168.1.20   # default 127.0.0.1
@@ -39,6 +39,8 @@ The usual setup: the machine that hosts the game sits in the LAN of the hosting 
 ## Using it
 
 - In game chat: `@pi where is my iron plate bottleneck?` Pi answers as `[Pi]`.
+- Shared to-do list: button **Todos** top left, or `/todo Eisen holen @Max`, `/todo done 3`, `/todo del 3`, `/todo clear`. Pi reads and writes the same list.
+- Works with the base game alone; Space Age is optional.
 - In Pi: `/factorio on|off|status` switches the chat bridge; `FACTORIO_PI_BRIDGE=off` starts without it.
 - Testing from a shell:
   ```bash
@@ -56,6 +58,7 @@ Called as `/pi {"op":"<name>", ...args}` over RCON. Results are JSON.
 - `rails {surface?, limit?}`: rail network in compact form. Problems (including `DEADLOCK: trains a -> b -> … -> a` from the wait graph), lines (schedules per train group), stations, trains with state, target, cargo and `waits_for`.
 - `map {x, y, r}` or `{x1, y1, x2, y2, scale?}`: ASCII map. `- | / \` rails, `+` crossing, `H` stop, signals `o`/`y`/`x` (open/reserved/closed), chain signals `O`/`Y`/`X`, letters = trains.
 - `entities {x1, y1, x2, y2, type?|name?, limit?}`: entities in an area with position, direction and signal state. A signal faces the oncoming train.
+- `todos {all?}`, `todo_add {text, assignee?}`, `todo_update {id, done?, text?, assignee?}`, `todo_remove {id}`, `todo_clear_done`: shared to-do list; every change is announced in chat.
 - `blockcheck {x1?, y1?, x2?, y2?, train_length?, cluster_radius?, limit?, detail?}`: signalling check. A train can stop in front of a signal if it can enter that block through a rail signal. From each such point the check walks back one train length; if the train touches a block with foreign exits and more than one entrance, it blocks other traffic. `fits` = tiles until that block, 0 = the stop point is inside a junction. Results are grouped by junction.
 
 ## Real save games

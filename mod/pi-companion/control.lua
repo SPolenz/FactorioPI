@@ -5,6 +5,7 @@
 local PI_NAME = "Pi"
 local PI_COLOR = { r = 0.4, g = 0.8, b = 1.0 }
 local INBOX_MAX = 100
+local todo = require("todo")
 
 local function ensure_storage()
   storage.inbox = storage.inbox or {}
@@ -729,10 +730,17 @@ local function register()
   commands.add_command("pi", { "pi-companion.command-help" }, handle)
 end
 
+todo.register_ops(ops)
+todo.register_events()
+
 script.on_init(function()
   ensure_storage()
+  todo.init()
 end)
-script.on_configuration_changed(ensure_storage)
+script.on_configuration_changed(function()
+  ensure_storage()
+  todo.init()
+end)
 
 script.on_event(defines.events.on_console_chat, function(e)
   if not e.player_index or not e.message then return end

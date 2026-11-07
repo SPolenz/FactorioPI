@@ -1,7 +1,7 @@
 # Roadmap and status
 
 Single place for where we stand. Read it at the start of a session, update it at the end.
-Last update: 2026-11-03
+Last update: 2026-11-07
 
 ## Goal
 
@@ -21,12 +21,16 @@ Pi plays Factorio with us as planner and advisor: it reads the factory, explains
 - Local dedicated server per save game with its own mod folder.
 - Rail views: `rails` (lines, trains, wait graph, deadlock detection), `map` (ASCII), `entities`.
 - `blockcheck`: signals where a waiting train blocks other traffic.
-- Repo public on GitHub, mod packaged for the portal (0.1.0, not yet uploaded).
+- Repo public on GitHub.
+- `pi-companion` 0.2.0 published on the mod portal (2026-11-07, `tools/publish-mod.sh`).
+- Shared to-do list in the mod: GUI button "Todos", `/todo`, ops `todos`, `todo_add`, `todo_update`, `todo_remove`, `todo_clear_done`.
+- Base-game server without Space Age: save `vanilla` with `server/data/mods-vanilla` (only `base` + `pi-companion`) and relaxed map settings `server/map-gen-relaxed.json`.
 
 ## Now
 
-- [ ] Push to GitHub and upload `pi-companion` 0.1.0 to the mod portal (when we test, earliest 2026-11-03 evening).
-- [ ] Multiplayer test: host with the mod, friend joins and the mod downloads automatically; then host from the other PC with RCON over LAN.
+- [ ] Push to GitHub.
+- [ ] Multiplayer test on save `vanilla` (2026-11-07): second player without Space Age joins, mod downloads from the portal; test the to-do GUI with two players.
+- [ ] Then: host from the other PC with RCON over LAN.
 
 ## Next
 
@@ -39,6 +43,7 @@ Pi plays Factorio with us as planner and advisor: it reads the factory, explains
 - [ ] Decode and repair blueprint strings offline (base64 + zlib + JSON).
 - [ ] Look at the Factorio Learning Environment (FLE) for ideas on turning state into text.
 - [ ] Stations as wait points in `blockcheck`.
+- [ ] Offer a remote interface PR to the Todo List mod (jonasjurczok/factorio-todo-list), then Pi could use it instead of our own list.
 
 ## Findings in our game (save "rainer", Nauvis)
 
@@ -50,4 +55,6 @@ Pi plays Factorio with us as planner and advisor: it reads the factory, explains
 - 2026-11-03: Publish on the mod portal as `pi-companion`, author SPolenz, MIT license, source on GitHub `SPolenz/FactorioPI`. Publish only when we want to test.
 - 2026-11-03: Default setup: the hosting PC is in the LAN of the hosting player; Pi connects via `FACTORIO_RCON_HOST`.
 - 2026-11-03: A signal is a wait point if its block can be entered through a rail signal; behind chain signals a train never stops.
+- 2026-11-07: Own to-do list in `pi-companion` instead of an existing mod: Todo List, Task List, Mission Tasks, JOLT and Set Objective have no remote interface, so Pi could only reach them with `/c`.
+- 2026-11-07: Portal uploads with an API key kept in `~/.config/factorio/api-key` (outside the repo).
 - Mod version must be bumped before every distribution, otherwise clients fail with a checksum mismatch.

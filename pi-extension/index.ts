@@ -133,6 +133,8 @@ export default function (pi: ExtensionAPI) {
 				"map {x,y,r | x1,y1,x2,y2, scale?, surface?} (ASCII map of rails, signals, stops, trains), " +
 				"entities {x1,y1,x2,y2, type?|name?, limit?} (entities in an area: name, x, y, direction, state). " +
 				"blockcheck {x1?,y1?,x2?,y2?, train_length?, limit?, detail?} (signal blocks where a waiting train blocks foreign traffic; fits = tiles until conflict block, grouped by junction). " +
+				"Shared to-do list (players see it in the GUI and via /todo): todos {all?}, todo_add {text, assignee?}, " +
+				"todo_update {id, done?, text?, assignee? ('' clears)}, todo_remove {id}, todo_clear_done. Every change is announced in chat. " +
 				"Use factorio_say for chat output.",
 			parameters: Type.Object({
 				op: Type.String({ description: "Mod op name, e.g. 'summary'" }),
