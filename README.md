@@ -29,10 +29,20 @@ Pi never uses `/c` console commands, so achievements stay enabled. Everything ru
    - **Dedicated server:** `server/server.sh create <name> [map-gen-settings.json]` / `server/server.sh start <name>`. `server/map-gen-relaxed.json` gives a relaxed map (peaceful biters, rich ore, no cliffs). Without Space Age: put a `mod-list.json` with only `base` and `pi-companion` enabled into `server/data/mods-<name>/` before `create`. RCON binds to `127.0.0.1:27015`, the password is generated into `server/.env`.
 3. Add `pi-extension/` as a local package in `~/.pi/agent/settings.json` and point it at the host:
    ```bash
-   export FACTORIO_RCON_HOST=192.168.1.20   # default 127.0.0.1
+   export FACTORIO_RCON_HOST=game-host.example   # default 127.0.0.1
    export FACTORIO_RCON_PORT=27015
    export FACTORIO_RCON_PASSWORD=<secret>   # default: RCON_PASSWORD from server/.env
    ```
+
+Alternatively, configure the extension in the git-ignored `server/.env` (plain, unquoted `KEY=value` lines, not shell expressions):
+
+```dotenv
+RCON_HOST=game-host.example
+RCON_PORT=27015
+RCON_PASSWORD=<secret>
+```
+
+Each `FACTORIO_RCON_*` environment variable overrides its matching file value. Without host/port settings the defaults remain `127.0.0.1:27015`; the password is required. Ports must be integers from 1 to 65535. After editing the file, run `/reload` in Pi to close the old connection and load the new settings. `/factorio status` and the bridge status show the target host and port, never the password. This file configures the extension; it does not change the server's listening address or port.
 
 The usual setup: the machine that hosts the game sits in the LAN of the hosting player, Pi connects over the LAN.
 
@@ -71,6 +81,14 @@ A save with its own mod set gets its own mod folder `server/data/mods-<name>` (s
 systemctl --user link "$PWD/server/systemd/factorio-pi.service"   # adjust ExecStart path first
 systemctl --user enable --now factorio-pi
 journalctl --user -u factorio-pi -f
+```
+
+## Extension tests
+
+With Node.js 22.19 or newer:
+
+```bash
+cd pi-extension && npm test
 ```
 
 ## License

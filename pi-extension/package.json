@@ -3,6 +3,9 @@
   "private": true,
   "type": "module",
   "keywords": ["pi-package"],
+  "scripts": {
+    "test": "node --experimental-strip-types --test *.test.ts"
+  },
   "pi": {
     "extensions": ["./index.ts"]
   },

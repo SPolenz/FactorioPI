@@ -1,10 +1,10 @@
 // factorio: Pi as a co-player. Talks to the pi-companion mod over RCON and bridges the in-game chat.
-import * as fs from "node:fs";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { Type } from "@earendil-works/pi-ai";
 import { defineTool, type ExtensionAPI, type ExtensionContext } from "@earendil-works/pi-coding-agent";
 import { Rcon } from "./rcon.ts";
+import { readRconConfig } from "./config.ts";
 
 const REPO_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const POLL_MS = 2000;
@@ -17,17 +17,6 @@ interface InboxMessage {
 	text: string;
 }
 
-function readPassword(): string {
-	if (process.env.FACTORIO_RCON_PASSWORD) return process.env.FACTORIO_RCON_PASSWORD;
-	const envFile = path.join(REPO_ROOT, "server", ".env");
-	const line = fs
-		.readFileSync(envFile, "utf8")
-		.split("\n")
-		.find((l) => l.startsWith("RCON_PASSWORD="));
-	if (!line) throw new Error(`RCON_PASSWORD missing in ${envFile}`);
-	return line.slice("RCON_PASSWORD=".length).trim();
-}
-
 export default function (pi: ExtensionAPI) {
 	let rcon: Rcon | undefined;
 	let pollTimer: NodeJS.Timeout | undefined;
@@ -35,13 +24,12 @@ export default function (pi: ExtensionAPI) {
 	let polling = false;
 	let lastError: string | undefined;
 
+	let target = "nicht konfiguriert";
 	function client(): Rcon {
 		if (!rcon) {
-			rcon = new Rcon({
-				host: process.env.FACTORIO_RCON_HOST ?? "127.0.0.1",
-				port: Number(process.env.FACTORIO_RCON_PORT ?? 27015),
-				password: readPassword(),
-			});
+			const config = readRconConfig(path.join(REPO_ROOT, "server", ".env"));
+			target = `${config.host.includes(":") ? `[${config.host}]` : config.host}:${config.port}`;
+			rcon = new Rcon(config);
 		}
 		return rcon;
 	}
@@ -72,7 +60,7 @@ export default function (pi: ExtensionAPI) {
 			if (lastError) {
 				lastError = undefined;
 			}
-			setStatus(ctx, "Factorio: verbunden");
+			setStatus(ctx, `Factorio: verbunden (${target})`);
 			if (messages.length === 0) return;
 			const lines = messages.map((m) => `${m.player ?? "?"}: ${m.text}`).join("\n");
 			pi.sendMessage(
@@ -92,7 +80,7 @@ export default function (pi: ExtensionAPI) {
 			const msg = (err as Error).message;
 			if (msg !== lastError) {
 				lastError = msg;
-				setStatus(ctx, "Factorio: getrennt");
+				setStatus(ctx, `Factorio: getrennt (${target})`);
 			}
 			rcon?.close();
 			rcon = undefined;
@@ -184,9 +172,9 @@ export default function (pi: ExtensionAPI) {
 				try {
 					const s = (await call("summary")) as { tick: number; players: unknown };
 					const players = Array.isArray(s.players) ? s.players.length : 0;
-					ctx.ui.notify(`Factorio verbunden, Tick ${s.tick}, ${players} Spieler, Brücke ${bridgeOn ? "an" : "aus"}`, "info");
+					ctx.ui.notify(`Factorio verbunden (${target}), Tick ${s.tick}, ${players} Spieler, Brücke ${bridgeOn ? "an" : "aus"}`, "info");
 				} catch (err) {
-					ctx.ui.notify(`Factorio nicht erreichbar: ${(err as Error).message}`, "warning");
+					ctx.ui.notify(`Factorio nicht erreichbar (${target}): ${(err as Error).message}`, "warning");
 				}
 			}
 		},

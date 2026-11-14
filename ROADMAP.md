@@ -1,7 +1,7 @@
 # Roadmap and status
 
 Single place for where we stand. Read it at the start of a session, update it at the end.
-Last update: 2026-11-07
+Last update: 2026-11-09
 
 ## Goal
 
@@ -16,6 +16,7 @@ Pi plays Factorio with us as planner and advisor: it reads the factory, explains
 
 ## Done
 
+- 2026-11-09: Extension reads host and port from ignored `server/.env`, with environment overrides and validated ports. Connection status shows the endpoint; `/reload` applies edits. Six offline configuration tests (`cd pi-extension && npm test`).
 - Companion mod `pi-companion` with `/pi` over RCON, chat inbox, `[Pi]` replies.
 - Pi extension: `factorio_call`, `factorio_say`, chat bridge.
 - Local dedicated server per save game with its own mod folder.
@@ -30,7 +31,7 @@ Pi plays Factorio with us as planner and advisor: it reads the factory, explains
 
 - [ ] Push to GitHub.
 - [x] Multiplayer test on save `vanilla` (2026-11-07): second player without Space Age joined, mod came from the portal. Still to check: to-do GUI with two players.
-- [ ] Then: host from the other PC with RCON over LAN.
+- [ ] Then: host from the other PC with RCON over LAN. 2026-11-09: remote RCON reached; `/pi` ping rejected with `RCON authentication failed`. Configure the remote host's password locally and retry.
 
 ## Next
 
@@ -52,6 +53,7 @@ Pi plays Factorio with us as planner and advisor: it reads the factory, explains
 
 ## Decisions
 
+- 2026-11-09: Reuse ignored `server/.env` for extension settings (`RCON_HOST`, `RCON_PORT`, `RCON_PASSWORD`); `FACTORIO_RCON_*` takes precedence. No private endpoint or credential in tracked files; `/reload` resets the cached connection.
 - 2026-11-03: Publish on the mod portal as `pi-companion`, author SPolenz, MIT license, source on GitHub `SPolenz/FactorioPI`. Publish only when we want to test.
 - 2026-11-03: Default setup: the hosting PC is in the LAN of the hosting player; Pi connects via `FACTORIO_RCON_HOST`.
 - 2026-11-03: A signal is a wait point if its block can be entered through a rail signal; behind chain signals a train never stops.
