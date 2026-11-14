@@ -33,7 +33,7 @@ Pi plays Factorio with us as planner and advisor: it reads the factory, explains
 
 - [ ] Rainer: set up Claude Desktop with `mcp-server/` (README "Claude Desktop") and test against the live game.
 
-- [ ] Push to GitHub.
+- [x] Push to GitHub (2026-11-10).
 - [x] Multiplayer test on save `vanilla` (2026-11-07): second player without Space Age joined, mod came from the portal. Still to check: to-do GUI with two players.
 - [ ] Then: host from the other PC with RCON over LAN. 2026-11-09: remote RCON reached; `/pi` ping rejected with `RCON authentication failed`. Configure the remote host's password locally and retry.
 
