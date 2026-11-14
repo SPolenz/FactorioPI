@@ -1,0 +1,11 @@
+{
+  "name": "factorio-pi-mcp-server",
+  "private": true,
+  "type": "module",
+  "description": "MCP server (stdio) for the pi-companion mod: Claude Desktop, Claude Code and other MCP clients.",
+  "scripts": {
+    "start": "node start.mjs",
+    "test": "node --experimental-strip-types --no-warnings --test *.test.ts"
+  },
+  "engines": { "node": ">=22.18" }
+}

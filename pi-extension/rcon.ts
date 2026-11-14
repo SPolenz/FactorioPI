@@ -9,6 +9,7 @@ export interface RconOptions {
 	port: number;
 	password: string;
 	timeoutMs?: number;
+	connectTimeoutMs?: number;
 }
 
 export class Rcon {
@@ -19,7 +20,11 @@ export class Rcon {
 	private queue: Promise<unknown> = Promise.resolve();
 	private connecting: Promise<void> | undefined;
 
-	constructor(private readonly opts: RconOptions) {}
+	private readonly opts: RconOptions;
+
+	constructor(opts: RconOptions) {
+		this.opts = opts;
+	}
 
 	get connected(): boolean {
 		return !!this.socket && !this.socket.destroyed;
@@ -54,6 +59,8 @@ export class Rcon {
 				reject(err);
 			};
 			sock.once("error", fail);
+			const ms = this.opts.connectTimeoutMs ?? 5000;
+			sock.setTimeout(ms, () => fail(new Error(`RCON connect to ${this.opts.host}:${this.opts.port} timed out after ${ms} ms`)));
 			sock.on("data", (chunk) => this.onData(chunk));
 			sock.on("close", () => {
 				this.failAll(new Error("RCON connection closed"));
@@ -62,6 +69,7 @@ export class Rcon {
 			});
 			sock.once("connect", async () => {
 				this.socket = sock;
+				sock.setTimeout(0);
 				sock.off("error", fail);
 				sock.on("error", () => undefined);
 				try {

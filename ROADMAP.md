@@ -1,7 +1,7 @@
 # Roadmap and status
 
 Single place for where we stand. Read it at the start of a session, update it at the end.
-Last update: 2026-11-09
+Last update: 2026-11-10
 
 ## Goal
 
@@ -27,7 +27,11 @@ Pi plays Factorio with us as planner and advisor: it reads the factory, explains
 - Shared to-do list in the mod: GUI button "Todos", `/todo`, ops `todos`, `todo_add`, `todo_update`, `todo_remove`, `todo_clear_done`.
 - Base-game server without Space Age: save `vanilla` with `server/data/mods-vanilla` (only `base` + `pi-companion`) and relaxed map settings `server/map-gen-relaxed.json`.
 
+- 2026-11-10: MCP server `mcp-server/` for Claude Desktop (for Rainer): typed tools for the known ops plus generic `factorio_call`, `factorio_inbox`, resource `factorio://inbox` with update notifications, in-game hint for new messages. Four offline tests (`cd mcp-server && npm test`); live test against save `rainer` (summary, rails, todos, ping, inbox, resource). Entry `start.mjs` checks the Node version and tells Windows users to run `winget install OpenJS.NodeJS.LTS`. RCON client got a 5 s connect timeout. Push notification for a real chat message still untested (needs a player in game).
+
 ## Now
+
+- [ ] Rainer: set up Claude Desktop with `mcp-server/` (README "Claude Desktop") and test against the live game.
 
 - [ ] Push to GitHub.
 - [x] Multiplayer test on save `vanilla` (2026-11-07): second player without Space Age joined, mod came from the portal. Still to check: to-do GUI with two players.
@@ -52,6 +56,8 @@ Pi plays Factorio with us as planner and advisor: it reads the factory, explains
 - `blockcheck`: 2,511 wait points, 319 conflicts in 191 junctions; 114 with a wait point inside the junction, 77 with too-short exit blocks. Worst: (-454,-636), one block with 10 entrances and 11 exits.
 
 ## Decisions
+
+- 2026-11-10: Claude Desktop support as a dependency-free stdio MCP server (Node strip-types, no `npm install` for Rainer); reuses `pi-extension/rcon.ts` and `config.ts`. Typed tools for known needs, `factorio_call` as fallback. Claude Desktop conversations cannot be started from outside: chat via pull (`factorio_inbox`) plus push notifications (resource update, log) and an in-game hint; for a real chat co-player Pi or a Claude Code loop stays the way.
 
 - 2026-11-09: Reuse ignored `server/.env` for extension settings (`RCON_HOST`, `RCON_PORT`, `RCON_PASSWORD`); `FACTORIO_RCON_*` takes precedence. No private endpoint or credential in tracked files; `/reload` resets the cached connection.
 - 2026-11-03: Publish on the mod portal as `pi-companion`, author SPolenz, MIT license, source on GitHub `SPolenz/FactorioPI`. Publish only when we want to test.

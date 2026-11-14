@@ -12,6 +12,7 @@ Pi never uses `/c` console commands, so achievements stay enabled. Everything ru
 |---|---|
 | `mod/pi-companion/` | Companion mod (Lua). Registers `/pi <json>`; refuses calls from players. Published on the mod portal as `pi-companion`. |
 | `pi-extension/` | Pi extension: tools `factorio_call` / `factorio_say`, chat bridge, RCON client. |
+| `mcp-server/` | MCP server (stdio, no dependencies) for Claude Desktop, Claude Code and other MCP clients. |
 | `server/server.sh` | Optional local dedicated server with its own data directory (does not touch `~/.factorio`). |
 | `tools/rcon.py` | Minimal RCON client for testing. |
 | `tools/package-mod.sh` | Builds `dist/pi-companion_<version>.zip`. |
@@ -57,6 +58,46 @@ The usual setup: the machine that hosts the game sits in the LAN of the hosting 
   tools/rcon.py --op ping
   tools/rcon.py --op rails '{"limit":10}'
   ```
+
+## Claude Desktop (MCP server)
+
+`mcp-server/` exposes the mod as an MCP server. It needs Node.js 22.18 or newer (Windows: `winget install OpenJS.NodeJS.LTS`, then restart Claude Desktop completely) and no `npm install`. With an older Node the server writes what to do into the Claude Desktop MCP log (Settings → Developer). If Node is missing entirely Claude Desktop only reports `spawn node ENOENT`: install Node as above.
+
+Tools: `factorio_summary`, `factorio_rails`, `factorio_map`, `factorio_entities`, `factorio_blockcheck`, `factorio_todos`, `factorio_todo_add`, `factorio_todo_update`, `factorio_say`, `factorio_inbox` and the generic fallback `factorio_call {op, args}`. Resource: `factorio://inbox`.
+
+Add it to `claude_desktop_config.json` (Claude Desktop: Settings → Developer → Edit Config; Windows `%APPDATA%\Claude\`, macOS `~/Library/Application Support/Claude/`) and restart Claude Desktop:
+
+```json
+{
+  "mcpServers": {
+    "factorio": {
+      "command": "node",
+      "args": ["C:\\path\\to\\FactorioPI\\mcp-server\\start.mjs"],
+      "env": {
+        "FACTORIO_RCON_HOST": "127.0.0.1",
+        "FACTORIO_RCON_PORT": "27015",
+        "FACTORIO_RCON_PASSWORD": "<secret>"
+      }
+    }
+  }
+}
+```
+
+Instead of the `FACTORIO_RCON_*` variables you can set `FACTORIO_ENV_FILE` to a `.env` file with `RCON_HOST`, `RCON_PORT`, `RCON_PASSWORD`. Optional: `FACTORIO_POLL_MS` (inbox poll interval, default 3000, `0` off), `FACTORIO_NOTIFY_IN_GAME=off` (no in-game hint). Claude Code: `claude mcp add factorio -- node /path/to/mcp-server/start.mjs` (same env variables).
+
+Test without Claude: `npx @modelcontextprotocol/inspector node mcp-server/start.mjs`; offline tests: `cd mcp-server && npm test`.
+
+### Limitation: the game cannot wake up Claude Desktop
+
+A Claude Desktop conversation only runs when the user writes in it. An MCP server cannot start a turn, so `@pi` messages in game chat are not answered by themselves. What the server does instead:
+
+- **A, pull:** the server instructions tell Claude to call `factorio_inbox` at the start of a conversation; it returns the open messages and marks them as read. In game, players get the hint "Nachricht gesehen. Ich antworte, sobald jemand in Claude Desktop mit mir spricht." (once per new message batch).
+- **B, push:** the server polls the inbox and sends `notifications/resources/updated` for `factorio://inbox` (if subscribed) and a `notifications/message` log entry. Claude Desktop currently shows these at most in its MCP log and does not start a turn; clients that react to them get them for free.
+
+For a real chat co-player use an agent that can be triggered from outside:
+
+- **Pi** (`pi-extension/`): the chat bridge starts a turn for every `@pi` message. This is the full experience today.
+- **Claude Code**: same MCP server, plus a loop that triggers turns, e.g. a small script that waits for new inbox messages and runs `claude -p "Answer the open Factorio chat messages" --mcp-config …` (headless), or `claude --continue` to keep the conversation. Possible follow-up: a `--wait` mode in the MCP server tooling for this.
 
 ## Mod ops
 
